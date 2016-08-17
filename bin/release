@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Copyright (C) 2016 Subho Halder <subho.halder@gmail.com>
+#
+# Distributed under terms of the MIT license.
+#
+# Usage:
+#
+#     $ bin/release <build-dir>
+
+echo "The build is completed"
