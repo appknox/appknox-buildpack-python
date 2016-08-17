@@ -18,10 +18,9 @@ PKG_CONFIG_PATH="/app/.appknox/vendor/lib/pkgconfig:$PKG_CONFIG_PATH"
 source $BIN_DIR/utils
 
 # always install This
-
 echo "-----> Noticed cffi. Bootstrapping libffi."
 mkdir -p .heroku/vendor
 # Download and extract libffi into target vendor directory.
 curl $VENDORED_LIBFFI -s | tar zxv -C .appknox/vendor &> /dev/null
-
+ls $(pwd)/vendor
 export LIBFFI=$(pwd)/vendor
