@@ -22,6 +22,6 @@ source $BIN_DIR/utils
 echo "-----> Noticed cffi. Bootstrapping libffi."
 mkdir -p .heroku/vendor
 # Download and extract libffi into target vendor directory.
-curl $VENDORED_LIBFFI -s | tar zxv -C .heroku/vendor &> /dev/null
+curl $VENDORED_LIBFFI -s | tar zxv -C .appknox/vendor &> /dev/null
 
 export LIBFFI=$(pwd)/vendor
