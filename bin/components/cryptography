@@ -22,5 +22,5 @@ echo "-----> Noticed cffi. Bootstrapping libffi."
 mkdir -p .heroku/vendor
 # Download and extract libffi into target vendor directory.
 curl $VENDORED_LIBFFI -s | tar zxv -C .appknox/vendor &> /dev/null
-ls $(pwd)/vendor
-export LIBFFI=$(pwd)/vendor
+ls $(pwd)/.appknox/vendor
+export LIBFFI=$(pwd)/.appknox/vendor
