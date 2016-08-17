@@ -19,11 +19,9 @@ source $BIN_DIR/utils
 
 # always install This
 
-if [ ! -d ".heroku/vendor/lib/libffi-3.1" ]; then
-  echo "-----> Noticed cffi. Bootstrapping libffi."
-  mkdir -p .heroku/vendor
-  # Download and extract libffi into target vendor directory.
-  curl $VENDORED_LIBFFI -s | tar zxv -C .heroku/vendor &> /dev/null
-fi
+echo "-----> Noticed cffi. Bootstrapping libffi."
+mkdir -p .heroku/vendor
+# Download and extract libffi into target vendor directory.
+curl $VENDORED_LIBFFI -s | tar zxv -C .heroku/vendor &> /dev/null
 
 export LIBFFI=$(pwd)/vendor
