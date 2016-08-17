@@ -19,7 +19,6 @@ fi
 WORKING_DIR=$(pwd)
 
 TMPTARDIR=$(mktemp -d)
-trap "rm -rf $TMPTARDIR" RETURN
 
 puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
 
@@ -28,6 +27,9 @@ cd $TMPTARDIR/setuptools-$SETUPTOOLS_VERSION/
 python setup.py install &> /dev/null
 cd $WORKING_DIR
 
+rm -rf $TMPTARDIR
+
+TMPTARDIR=$(mktemp -d)
 
 puts-step "Installing Pip ($PIP_VERSION)
 tar zxf $ROOT_DIR/vendor/pip-$PIP_VERSION.tar.gz -C $TMPTARDIR
