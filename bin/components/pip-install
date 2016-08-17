@@ -5,7 +5,7 @@ set +e
 /app/.appknox/python/bin/pip install -r requirements.txt --exists-action=w --src=./.appknox/src --disable-pip-version-check --no-cache-dir 2>&1 | tee $WARNINGS_LOG | cleanup | indent
 PIP_STATUS="${PIPESTATUS[0]}"
 set -e
-
+shopt -s extglob
 if grep -qi 'Running setup.py install for distribute' "$WARNINGS_LOG"; then
   echo
   puts-warn "Hello! Your requirements.txt file contains the distribute package."
