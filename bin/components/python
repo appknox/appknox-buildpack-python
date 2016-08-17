@@ -31,7 +31,7 @@ rm -rf $TMPTARDIR
 
 TMPTARDIR=$(mktemp -d)
 
-puts-step "Installing Pip ($PIP_VERSION)
+puts-step "Installing Pip ($PIP_VERSION)"
 tar zxf $ROOT_DIR/vendor/pip-$PIP_VERSION.tar.gz -C $TMPTARDIR
 cd $TMPTARDIR/pip-$PIP_VERSION/
 python setup.py install &> /dev/null
