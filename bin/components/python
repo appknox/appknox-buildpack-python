@@ -18,6 +18,7 @@ fi
 
 WORKING_DIR=$(pwd)
 
+TMPTARDIR=$(mktemp -d)
 trap "rm -rf $TMPTARDIR" RETURN
 
 puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
