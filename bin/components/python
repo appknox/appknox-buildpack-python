@@ -1,0 +1,41 @@
+set +e
+PYTHON_VERSION=$(cat $ROOT_DIR/runtime)
+
+# Install Python.
+
+puts-step "Installing $PYTHON_VERSION"
+
+# Prepare destination directory.
+mkdir -p .appknox/python
+
+curl https://lang-python.s3.amazonaws.com/$STACK/runtimes/$PYTHON_VERSION.tar.gz -s | tar zxv -C .appknox/python &> /dev/null
+
+if [[ $? != 0 ]] ; then
+  puts-warn "Requested runtime ($PYTHON_VERSION) is not available for this stack ($STACK)."
+  puts-warn "Aborting."
+  exit 1
+fi
+
+WORKING_DIR=$(pwd)
+
+TMPTARDIR=$(mktemp -d)
+
+puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
+
+tar zxf $ROOT_DIR/vendor/setuptools-$SETUPTOOLS_VERSION.tar.gz -C $TMPTARDIR
+cd $TMPTARDIR/setuptools-$SETUPTOOLS_VERSION/
+python setup.py install &> /dev/null
+cd $WORKING_DIR
+
+rm -rf $TMPTARDIR
+
+TMPTARDIR=$(mktemp -d)
+
+puts-step "Installing Pip ($PIP_VERSION)
+tar zxf $ROOT_DIR/vendor/pip-$PIP_VERSION.tar.gz -C $TMPTARDIR
+cd $TMPTARDIR/pip-$PIP_VERSION/
+python setup.py install &> /dev/null
+cd $WORKING_DIR
+
+set -e
+hash -r

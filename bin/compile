@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Copyright (C) 2016 Subho Halder <subho.halder@gmail.com>
+#
+# Distributed under terms of the MIT license.
+#
+# Usage:
+#
+#     $ bin/compile <build-dir> <cache-dir> <env-path>
+
+# Fail fast and fail hard.
+set -eo pipefail
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
+ROOT_DIR=$(dirname $BIN_DIR)
+
+# Static configurations for virtualenv caches.
+VIRTUALENV_LOC=".appknox/venv"
+PYTHON_EXE="/app/.appknox/python/bin/python"
+PIP_VERSION="8.1.2"
+SETUPTOOLS_VERSION="25.2.0"
+
+BUILDPACK_VERSION=v1
+
+# Sanitizing environment variables.
+unset GIT_DIR PYTHONHOME PYTHONPATH LD_LIBRARY_PATH LIBRARY_PATH
+unset RECEIVE_DATA RUN_KEY BUILD_INFO DEPLOY LOG_TOKEN DYNO
+unset CYTOKINE_LOG_FILE GEM_PATH
+
+# Syntax sugar.
+source $BIN_DIR/utils
+
+# Directory Hacks for path consistency.
+APP_DIR='/app'
+
+# Set new context.
+ORIG_BUILD_DIR=$BUILD_DIR
+BUILD_DIR=$APP_DIR
+
+# Set up outputs under new context
+PROFILE_PATH="$BUILD_DIR/.profile.d/python.sh"
+GUNICORN_PROFILE_PATH="$BUILD_DIR/.profile.d/python.gunicorn.sh"
+
+# We'll need to send these statics to other scripts we `source`.
+export BUILD_DIR CACHE_DIR BIN_DIR PROFILE_PATH
+
+# Prepend proper environment variables for Python use.
+export PATH=$BUILD_DIR/.appknox/python/bin
+
+export PYTHONUNBUFFERED=1
+export LANG=en_US.UTF-8
+export C_INCLUDE_PATH=/app/.appknox/vendor/include:$BUILD_DIR/.appknox/vendor/include:/app/.appknox/python/include:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=/app/.appknox/vendor/include:$BUILD_DIR/.appknox/vendor/include:/app/.appknox/python/include:$CPLUS_INCLUDE_PATH
+export LIBRARY_PATH=/app/.appknox/vendor/lib:$BUILD_DIR/.appknox/vendor/lib:/app/.appknox/python/lib:$LIBRARY_PATH
+export LD_LIBRARY_PATH=/app/.appknox/vendor/lib:$BUILD_DIR/.appknox/vendor/lib:/app/.heroku/python/lib:$LD_LIBRARY_PATH
+export PKG_CONFIG_PATH=/app/.appknox/vendor/lib/pkg-config:$BUILD_DIR/.appknox/vendor/lib/pkg-config:/app/.appknox/python/lib/pkg-config:$PKG_CONFIG_PATH
+
+# Switch to the repo's context.
+cd $BUILD_DIR
+
+# Warn for lack of Procfile.
+if [[ ! -f Procfile ]]; then
+  puts-warn 'Warning: Your application is missing a Procfile. This file tells us how to run your application.'
+fi
+
+# If no requirements.txt file given, assume `setup.py develop` is intended.
+if [ ! -f requirements.txt ]; then
+  echo "-e ." > requirements.txt
+fi
+
+set +e
+# Create set-aside `.heroku` folder.
+mkdir .appknox &> /dev/null
+set -e
+
+mkdir -p $(dirname $PROFILE_PATH)
+
+# Install Python.
+source $BIN_DIR/components/python
+
+# Pylibmc support.
+source $BIN_DIR/components/pylibmc
+
+# Libffi support.
+source $BIN_DIR/components/cryptography
+
+# Install dependencies with Pip.
+source $BIN_DIR/components/pip-install
+
+# Django collectstatic support.
+sub-env $BIN_DIR/components/collectstatic
+
+# Create .profile script for application runtime environment variables.
+set-env PATH '$HOME/.appknox/python/bin:$PATH'
+set-env PYTHONUNBUFFERED true
+set-env PYTHONHOME /app/.appknox/python
+set-env LIBRARY_PATH '/app/.appknox/vendor/lib:/app/.appknox/python/lib:$LIBRARY_PATH'
+set-env LD_LIBRARY_PATH '/app/.appknox/vendor/lib:/app/.appknox/python/lib:$LD_LIBRARY_PATH'
+set-default-env LANG en_US.UTF-8
+set-default-env PYTHONHASHSEED random
+set-default-env PYTHONPATH /app/
+
+# Install sane-default script for $WEB_CONCURRENCY and $FORWARDED_ALLOW_IPS.
+cp $ROOT_DIR/vendor/python.gunicorn.sh $GUNICORN_PROFILE_PATH
